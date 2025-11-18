@@ -253,7 +253,30 @@ namespace EventFlow.Core.VersionedTypes
                 .GetTypeInfo()
                 .GetCustomAttributes()
                 .OfType<TAttribute>()
-                .Select(a => CreateDefinition(a.Version, versionedType, a.Name));
+                .Select(a =>
+                {
+                    // If name is not specified in attribute (empty string), use the full type name (including generic parameters)
+                    // This ensures unique names for generic types like CompensationJobIdStoredEvent<TSaga, TIdentity>
+                    var name = string.IsNullOrEmpty(a.Name) ? GetFullTypeName(versionedType) : a.Name;
+                    return CreateDefinition(a.Version, versionedType, name);
+                });
+        }
+
+        private static string GetFullTypeName(Type type)
+        {
+            if (!type.IsGenericType)
+                return type.Name;
+
+            var genericArgs = type.GetGenericArguments();
+            var typeName = type.Name;
+            var backtickIndex = typeName.IndexOf('`');
+            if (backtickIndex > 0)
+            {
+                typeName = typeName.Substring(0, backtickIndex);
+            }
+
+            var genericArgNames = string.Join(",", genericArgs.Select(GetFullTypeName));
+            return $"{typeName}<{genericArgNames}>";
         }
     }
 }

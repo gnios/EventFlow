@@ -17,36 +17,30 @@
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
 // FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
 // COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
-// IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+// IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM OR IN
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-using System;
-using EventFlow.Core.VersionedTypes;
+using EventFlow.Aggregates;
+using EventFlow.EventStores;
 
-namespace EventFlow.EventStores
+namespace EventFlow.DeclarativeSaga.StateMachine.Events
 {
-    [AttributeUsage(
-        AttributeTargets.Class,
-        AllowMultiple = true
-        )]
-    public class EventVersionAttribute : VersionedTypeAttribute
+    /// <summary>
+    /// Base event class for clearing compensation job ID from saga state.
+    /// Each saga should create its own specific version of this event.
+    /// This event is emitted when the expected event arrives before timeout,
+    /// causing the compensation job to be cancelled and removed from the state.
+    /// 
+    /// Note: This event does not specify a name in EventVersion to allow EventFlow to use the full generic type name,
+    /// ensuring each saga has a unique event name (e.g., CompensationJobIdClearedEvent`2[OrderDeclarativeSaga,OrderSagaId]).
+    /// </summary>
+    /// <typeparam name="TSaga">The saga type</typeparam>
+    /// <typeparam name="TIdentity">The saga identity type</typeparam>
+    [EventVersion(1)]
+    public class CompensationJobIdClearedEvent<TSaga, TIdentity> : AggregateEvent<TSaga, TIdentity>
+        where TSaga : IAggregateRoot<TIdentity>
+        where TIdentity : Core.IIdentity
     {
-        public EventVersionAttribute(string name, int version)
-            : base(name, version)
-        {
-        }
-
-        /// <summary>
-        /// Constructor that allows version-only specification. When name is not provided,
-        /// EventFlow will use the full type name (including generic parameters) to ensure uniqueness.
-        /// This is useful for generic events like CompensationJobIdStoredEvent&lt;TSaga, TIdentity&gt;
-        /// where each saga needs a unique event name.
-        /// </summary>
-        /// <param name="version">The version of the event</param>
-        public EventVersionAttribute(int version)
-            : base(version)
-        {
-            // Name will be set to empty string, and VersionedTypeDefinitionService will use the type name
-        }
     }
 }
+

@@ -23,6 +23,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using EventFlow.Aggregates;
 using EventFlow.Commands;
@@ -223,11 +224,11 @@ namespace EventFlow
             serviceCollection.TryAddSingleton<ICommandDefinitionService, CommandDefinitionService>();
 
             serviceCollection.TryAddSingleton<ILoadedVersionedTypes>(r => new LoadedVersionedTypes(
-                _jobTypes,
-                _commandTypes,
-                _aggregateEventTypes,
-                _sagaTypes,
-                _snapshotTypes));
+                _jobTypes.Where(t => !t.GetTypeInfo().IsGenericTypeDefinition),
+                _commandTypes.Where(t => !t.GetTypeInfo().IsGenericTypeDefinition),
+                _aggregateEventTypes.Where(t => !t.GetTypeInfo().IsGenericTypeDefinition),
+                _sagaTypes.Where(t => !t.GetTypeInfo().IsGenericTypeDefinition),
+                _snapshotTypes.Where(t => !t.GetTypeInfo().IsGenericTypeDefinition)));
             
             serviceCollection.TryAddTransient<IEventNamingStrategy, DefaultStrategy>();
         }

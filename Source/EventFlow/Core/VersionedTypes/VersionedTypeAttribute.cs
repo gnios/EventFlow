@@ -37,5 +37,17 @@ namespace EventFlow.Core.VersionedTypes
             Name = name;
             Version = version;
         }
+
+        /// <summary>
+        /// Protected constructor for attributes that don't specify a name.
+        /// The name will be derived from the type name by VersionedTypeDefinitionService.
+        /// </summary>
+        protected VersionedTypeAttribute(int version)
+        {
+            if (version <= 0) throw new ArgumentOutOfRangeException(nameof(version), "Version must be positive");
+
+            Name = string.Empty; // Empty string indicates name should be derived from type
+            Version = version;
+        }
     }
 }
